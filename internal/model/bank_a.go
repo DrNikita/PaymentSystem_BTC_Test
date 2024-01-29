@@ -33,22 +33,28 @@ func (b *ABank) RegisterAccount(client Client) Account {
 	return b.Accounts[iban]
 }
 
-func (b *ABank) Transfer(payment *Payment) {
-	payment.Sender.Withdraw(payment.Amount)
+func (b *ABank) transfer(payment *Payment) error {
+	if err := payment.Sender.Withdraw(payment.Amount); err != nil {
+		return err
+	}
 	payment.Recipient.Deposit(payment.Amount)
+	return nil
 }
 
 func (b *ABank) IssueMoney(amount Amount) {
 	b.StateAccount.AmountOfMoney.Value += amount.Value
 }
 
-func (b *ABank) DestroyMoney(account Account, amount Amount) {
+func (b *ABank) DestroyMoney(account Account, amount Amount) error {
 	payment := Payment{
 		Sender:    &account,
 		Recipient: b.DeadAccount,
 		Amount:    amount,
 	}
-	b.Transfer(&payment)
+	if err := b.transfer(&payment); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (b *ABank) GenerateIban() string {
