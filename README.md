@@ -1,0 +1,1 @@
+Simple payment system, which allow you to transfer money between accounts in different banks.
