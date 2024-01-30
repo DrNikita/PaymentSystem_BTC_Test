@@ -99,10 +99,11 @@ func main() {
 
 	wg.Add(4)
 
+	// Выполнение транзакций через платежную систему
 	go func() {
 		defer wg.Done()
 		amount := model.Amount{
-			Value: 9700,
+			Value: 1000,
 		}
 		log.Info(fmt.Sprintf("Gorutine 1: Ember(%f)--%f-->Morf(%f)", AEmber.AmountOfMoney.Value, amount.Value, BMorf.AmountOfMoney.Value))
 		err := visa.Transfer(AEmber.Client.IbanNumber, BMorf.Client.IbanNumber, amount)
@@ -113,11 +114,11 @@ func main() {
 	}()
 
 	go func() {
+		defer wg.Done()
 		amount := model.Amount{
-			Value: 9700,
+			Value: 999,
 		}
 		log.Info(fmt.Sprintf("Gorutine 2: Nikita(%f)--%f-->Ember(%f)", ANikita.AmountOfMoney.Value, amount.Value, AEmber.AmountOfMoney.Value))
-		defer wg.Done()
 		err := visa.Transfer(ANikita.Client.IbanNumber, AEmber.Client.IbanNumber, amount)
 		if err != nil {
 			errChan <- err
@@ -128,7 +129,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 		amount := model.Amount{
-			Value: 9700,
+			Value: 1666,
 		}
 		log.Info(fmt.Sprintf("Gorutine 3: Egor(%f)--%f-->Nikita(%f)", BEgor.AmountOfMoney.Value, amount.Value, ANikita.AmountOfMoney.Value))
 		err := visa.Transfer(BEgor.Client.IbanNumber, ANikita.Client.IbanNumber, amount)
@@ -141,7 +142,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 		amount := model.Amount{
-			Value: 9700,
+			Value: 1232,
 		}
 		log.Info(fmt.Sprintf("Gorutine 4: Morf(%f)--%f-->Egor(%f)", BMorf.AmountOfMoney.Value, amount.Value, BEgor.AmountOfMoney.Value))
 		err := visa.Transfer(BMorf.Client.IbanNumber, BEgor.Client.IbanNumber, amount)
@@ -151,12 +152,14 @@ func main() {
 		log.Info(fmt.Sprintf("Gorutine 4: Morf(%f)___Egor(%f)", BMorf.AmountOfMoney.Value, BEgor.AmountOfMoney.Value))
 	}()
 
-	select {
-	case err := <-errChan:
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	for err := range errChan {
 		if err != nil {
 			log.Error(err)
 		}
 	}
-
-	wg.Wait()
 }
