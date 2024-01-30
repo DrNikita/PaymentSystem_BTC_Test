@@ -1,1 +1,2 @@
-Simple payment system, which allow you to transfer money between accounts in different banks.
+Simple payment system console application, which allow you to transfer money between accounts in different banks.
+Main logic is in the main.go file, where presented imitation of making payments through a payment system.
